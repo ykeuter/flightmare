@@ -43,6 +43,14 @@ int main(int argc, char *argv[]) {
   Vector<3> quad_size(0.5, 0.5, 0.5);
   quad_ptr->setSize(quad_size);
 
+  std::string extra_object_id = "extra_object";
+  std::string extra_prefab_id = "Transparen_Cube";
+  std::shared_ptr<StaticObject> extra_object =
+    std::make_shared<StaticObject>(extra_object_id, extra_prefab_id);
+  extra_object->setPosition(Eigen::Vector3f(0, 0, 5));
+  extra_object->setQuaternion(
+    Quaternion(0.0, 0.0, 0.0, 1.0));
+
   // Initialize gates
   std::string object_id = "unity_gate";
   std::string prefab_id = "rpg_gate";
@@ -90,6 +98,7 @@ int main(int argc, char *argv[]) {
   // Start racing
   ros::Time t0 = ros::Time::now();
 
+  unity_bridge_ptr->addStaticObject(extra_object);
   unity_bridge_ptr->addStaticObject(gate_1);
   unity_bridge_ptr->addStaticObject(gate_2);
   unity_bridge_ptr->addStaticObject(gate_3);

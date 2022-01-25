@@ -136,6 +136,26 @@ zmq
 zmqpp
 )
 
+# sandbox
+
+
+catkin_package(
+LIBRARIES
+CATKIN_DEPENDS
+)
+
+cs_add_executable(sandbox
+    src/sandbox/sandbox.cpp
+)
+
+target_link_libraries(sandbox
+${catkin_LIBRARIES}
+${OpenCV_LIBRARIES}
+stdc++fs
+zmq
+zmqpp
+)
+
 # camera
 
 cs_add_executable(camera

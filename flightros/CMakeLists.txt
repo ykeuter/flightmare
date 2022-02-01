@@ -170,6 +170,11 @@ zmq
 zmqpp
 )
 
+# python
+catkin_install_python(PROGRAMS src/python/talker.py src/python/listener.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
 # Finish
 cs_install()
 cs_export()

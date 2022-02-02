@@ -139,11 +139,6 @@ zmqpp
 # sandbox
 
 
-catkin_package(
-LIBRARIES
-CATKIN_DEPENDS
-)
-
 cs_add_executable(sandbox
     src/sandbox/sandbox.cpp
 )
@@ -163,6 +158,20 @@ cs_add_executable(camera
 )
 
 target_link_libraries(camera
+${catkin_LIBRARIES}
+${OpenCV_LIBRARIES}
+stdc++fs
+zmq
+zmqpp
+)
+
+# simulator
+
+cs_add_executable(simulator
+    src/simulator/simulator.cpp
+)
+
+target_link_libraries(simulator
 ${catkin_LIBRARIES}
 ${OpenCV_LIBRARIES}
 stdc++fs

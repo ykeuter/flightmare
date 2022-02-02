@@ -13,7 +13,14 @@
 #include "flightlib/objects/quadrotor.hpp"
 #include "flightlib/sensors/rgb_camera.hpp"
 
+// flightros
+#include "flightros/Cmd.h"
+
 using namespace flightlib;
+
+void cmdCallback(const flightros::Cmd::ConstPtr& msg) {
+  ROS_INFO_STREAM(msg);
+}
 
 int main(int argc, char *argv[]) {
   // initialize ROS
@@ -43,6 +50,9 @@ int main(int argc, char *argv[]) {
   // initialize publishers
   image_transport::ImageTransport it(pnh);
   rgb_pub = it.advertise("/rgb", 1);
+
+  // subscriber
+  ros::Subscriber sub = nh.subscribe("cmd", 1, cmdCallback);
 
   // Flightmare
   Vector<3> B_r_BC(0.0, 0.0, 0.3);
@@ -85,6 +95,8 @@ int main(int argc, char *argv[]) {
       cv_bridge::CvImage(std_msgs::Header(), "bgr8", img).toImageMsg();
     rgb_msg->header.stamp = timestamp;
     rgb_pub.publish(rgb_msg);
+
+    ros::spinOnce();
 
     frame_id += 1;
   }

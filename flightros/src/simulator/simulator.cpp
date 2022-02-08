@@ -1,42 +1,35 @@
-
-// ros
-#include <cv_bridge/cv_bridge.h>
-#include <image_transport/image_transport.h>
-#include <ros/ros.h>
-
-// flightlib
-#include "flightlib/bridges/unity_bridge.hpp"
-#include "flightlib/bridges/unity_message_types.hpp"
-#include "flightlib/common/quad_state.hpp"
-#include "flightlib/common/types.hpp"
-#include "flightlib/common/command.hpp"
-#include "flightlib/objects/quadrotor.hpp"
-#include "flightlib/sensors/rgb_camera.hpp"
-
-// flightros
-#include "flightros/Cmd.h"
+#include "flightros/simulator/simulator.hpp"
 
 using namespace flightlib;
 
-void cmdCallback(const flightros::Cmd::ConstPtr& msg) {
-  ROS_INFO_STREAM(msg);
+namespace flightros {
+
+Simulator::Simulator()
+: cmd_{.0, {-Gz / 4, -Gz / 4, -Gz / 4, -Gz / 4}} {
+  // quad initialization
+  quad_ptr_ = std::make_shared<Quadrotor>();
 }
 
-int main(int argc, char *argv[]) {
-  // initialize ROS
-  ros::init(argc, argv, "simulator");
+Simulator::~Simulator() {}
+
+void Simulator::cmdCallback(const Cmd::ConstPtr& msg) {
+  cmd_.t = msg->time;
+  cmd_.thrusts << msg->thrusts[0], msg->thrusts[1], msg->thrusts[2], msg->thrusts[3];
+  quad_ptr_->setCommand(cmd_);
+}
+
+void Simulator::run() {
   ros::NodeHandle nh("");
   ros::NodeHandle pnh("~");
+
   ros::Rate(50.0);
 
   // publisher
   image_transport::Publisher rgb_pub;
 
-  // unity quadrotor
-  std::shared_ptr<Quadrotor> quad_ptr = std::make_shared<Quadrotor>();
   // define quadsize scale (for unity visualization only)
   Vector<3> quad_size(0.5, 0.5, 0.5);
-  quad_ptr->setSize(quad_size);
+  quad_ptr_->setSize(quad_size);
   QuadState quad_state;
 
   //
@@ -52,7 +45,7 @@ int main(int argc, char *argv[]) {
   rgb_pub = it.advertise("/rgb", 1);
 
   // subscriber
-  ros::Subscriber sub = nh.subscribe("cmd", 1, cmdCallback);
+  ros::Subscriber sub = nh.subscribe("cmd", 1, &Simulator::cmdCallback, this);
 
   // Flightmare
   Vector<3> B_r_BC(0.0, 0.0, 0.3);
@@ -62,26 +55,25 @@ int main(int argc, char *argv[]) {
   rgb_camera->setWidth(640);
   rgb_camera->setHeight(360);
   rgb_camera->setRelPose(B_r_BC, R_BC);
-  quad_ptr->addRGBCamera(rgb_camera);
+  quad_ptr_->addRGBCamera(rgb_camera);
 
   // initialization
   quad_state.setZero();
-  quad_ptr->reset(quad_state);
+  quad_ptr_->reset(quad_state);
 
   // connect unity
-  unity_bridge_ptr->addQuadrotor(quad_ptr);
+  unity_bridge_ptr->addQuadrotor(quad_ptr_);
   unity_ready = unity_bridge_ptr->connectUnity(scene_id);
 
   FrameID frame_id = 0;
-  Scalar dt{.2};
-  Command cmd{.0, {3., 3., 3., 3.}};
-  quad_ptr->setCommand(cmd);
+  Scalar dt{.02};
+  quad_ptr_->setCommand(cmd_);
 
   while (ros::ok() && unity_ready) {
     // quad_state.x[QS::POSZ] += 0.1;
 
     // quad_ptr->setState(quad_state);
-    quad_ptr->run(dt);
+    quad_ptr_->run(dt);
 
     unity_bridge_ptr->getRender(frame_id);
     unity_bridge_ptr->handleOutput();
@@ -100,6 +92,14 @@ int main(int argc, char *argv[]) {
 
     frame_id += 1;
   }
+}
+}  // namespace flightros
+
+int main(int argc, char** argv) {
+  ros::init(argc, argv, "flight_pilot");
+
+  flightros::Simulator sim;
+  sim.run();
 
   return 0;
 }

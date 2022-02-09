@@ -180,7 +180,7 @@ zmqpp
 )
 
 # python
-catkin_install_python(PROGRAMS src/python/talker.py src/python/listener.py
+catkin_install_python(PROGRAMS src/python/talker.py src/python/listener.py src/controller/controller.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

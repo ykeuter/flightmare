@@ -5,6 +5,7 @@
 #include <cv_bridge/cv_bridge.h>
 #include <image_transport/image_transport.h>
 #include <ros/ros.h>
+#include <geometry_msgs/Vector3.h>
 
 // flightlib
 #include "flightlib/bridges/unity_bridge.hpp"
@@ -17,6 +18,7 @@
 
 // flightros
 #include "flightros/Cmd.h"
+#include "flightros/QuadState.h"
 
 using namespace flightlib;
 

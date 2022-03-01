@@ -83,11 +83,11 @@ void Simulator::run() {
     cv::Mat img;
 
     flightros::QuadState qs;
-    qs.position = geometry::Vector3(quad_state.x[QS::POSX], quad_state.x[QS::POSY], quad_state.x[QS::POSZ]);
-    qs.velocity = geometry::Vector3(quad_state.x[QS::VELX], quad_state.x[QS::VELY], quad_state.x[QS::VELZ]);
-    qs.angular_velocity = geometry::Vector3(quad_state.x[QS::OMEX], quad_state.x[QS::OMEY], quad_state.x[QS::OMEZ]);
+    qs.position = geometry_msgs::Vector3(quad_state.x[QS::POSX], quad_state.x[QS::POSY], quad_state.x[QS::POSZ]);
+    qs.velocity = geometry_msgs::Vector3(quad_state.x[QS::VELX], quad_state.x[QS::VELY], quad_state.x[QS::VELZ]);
+    qs.angular_velocity = geometry_msgs::Vector3(quad_state.x[QS::OMEX], quad_state.x[QS::OMEY], quad_state.x[QS::OMEZ]);
     Vector<3> euler = quad_state.q().toRotationMatrix().eulerAngles(2, 1, 0);
-    qs.euler_angles = geometry::Vector3(euler.x, euler.y, euler.z);
+    qs.euler_angles = geometry_msgs::Vector3(euler.x, euler.y, euler.z);
     state_pub.publish(qs);
 
     ros::Time timestamp = ros::Time::now();

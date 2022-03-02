@@ -18,6 +18,28 @@ void Simulator::cmdCallback(const Cmd::ConstPtr& msg) {
   quad_ptr_->setCommand(cmd_);
 }
 
+QuadObs Simulator::genObs(const QuadState& qs) {
+  QuadObs qo;
+  // qo.position = geometry_msgs::Vector3(quad_state.x[QS::POSX], quad_state.x[QS::POSY], quad_state.x[QS::POSZ]);
+  qo.position.x = .5;
+  qo.position.y = .5;
+  qo.position.z = .5;
+  qo.velocity.x = quad_state.x[QS::VELX];
+  qo.velocity.y = quad_state.x[QS::VELY];
+  qo.velocity.z = quad_state.x[QS::VELZ];
+  qo.angular_velocity.x = quad_state.x[QS::OMEX];
+  qo.angular_velocity.y = quad_state.x[QS::OMEY];
+  qo.angular_velocity.z = quad_state.x[QS::OMEZ];
+  
+  Vector<3> euler = quad_state.q().toRotationMatrix().eulerAngles(2, 1, 0);
+  qo.euler_zyx.x = euler.x;
+  qo.euler_zyx.y = euler.y;
+  qo.euler_zyx.z = euler.z;
+  Vector<3> euler = quad_state.q().toRotationMatrix().eulerAngles(2, 1, 0);
+  qo.euler_zyx = geometry_msgs::Vector3(euler.x, euler.y, euler.z);
+  return qo;
+}
+
 void Simulator::run() {
   ros::NodeHandle nh("");
   ros::NodeHandle pnh("~");
@@ -26,7 +48,7 @@ void Simulator::run() {
 
   // publisher
   image_transport::Publisher rgb_pub;
-  ros::Publisher state_pub;
+  ros::Publisher obs_pub;
 
   // define quadsize scale (for unity visualization only)
   Vector<3> quad_size(0.5, 0.5, 0.5);
@@ -44,7 +66,7 @@ void Simulator::run() {
   // initialize publishers
   image_transport::ImageTransport it(pnh);
   rgb_pub = it.advertise("/rgb", 1);
-  state_pub = nh.advertise<flightros::QuadState>("quad_state", 1);
+  obs_pub = nh.advertise<QuadObs>("quad_obs", 1);
 
   // subscriber
   ros::Subscriber sub = nh.subscribe("cmd", 1, &Simulator::cmdCallback, this);
@@ -79,19 +101,11 @@ void Simulator::run() {
 
     unity_bridge_ptr->getRender(frame_id);
     unity_bridge_ptr->handleOutput();
-
-    cv::Mat img;
-
-    flightros::QuadState qs;
-    qs.position = geometry_msgs::Vector3(quad_state.x[QS::POSX], quad_state.x[QS::POSY], quad_state.x[QS::POSZ]);
-    qs.velocity = geometry_msgs::Vector3(quad_state.x[QS::VELX], quad_state.x[QS::VELY], quad_state.x[QS::VELZ]);
-    qs.angular_velocity = geometry_msgs::Vector3(quad_state.x[QS::OMEX], quad_state.x[QS::OMEY], quad_state.x[QS::OMEZ]);
-    Vector<3> euler = quad_state.q().toRotationMatrix().eulerAngles(2, 1, 0);
-    qs.euler_angles = geometry_msgs::Vector3(euler.x, euler.y, euler.z);
-    state_pub.publish(qs);
+    
+    obs_pub.publish(genObs(quad_state));
 
     ros::Time timestamp = ros::Time::now();
-
+    cv::Mat img;
     rgb_camera->getRGBImage(img);
     sensor_msgs::ImagePtr rgb_msg =
       cv_bridge::CvImage(std_msgs::Header(), "bgr8", img).toImageMsg();

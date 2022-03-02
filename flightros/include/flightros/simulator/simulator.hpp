@@ -18,7 +18,7 @@
 
 // flightros
 #include "flightros/Cmd.h"
-#include "flightros/QuadState.h"
+#include "flightros/QuadObs.h"
 
 using namespace flightlib;
 
@@ -32,6 +32,8 @@ class Simulator {
   void cmdCallback(const Cmd::ConstPtr& msg);
 
   void run();
+  QuadObs genObs(const QuadState& qs);
+
 
  private:
   // unity quadrotor

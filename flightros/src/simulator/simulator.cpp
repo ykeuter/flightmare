@@ -24,19 +24,18 @@ QuadObs Simulator::genObs(const QuadState& qs) {
   qo.position.x = .5;
   qo.position.y = .5;
   qo.position.z = .5;
-  qo.velocity.x = quad_state.x[QS::VELX];
-  qo.velocity.y = quad_state.x[QS::VELY];
-  qo.velocity.z = quad_state.x[QS::VELZ];
-  qo.angular_velocity.x = quad_state.x[QS::OMEX];
-  qo.angular_velocity.y = quad_state.x[QS::OMEY];
-  qo.angular_velocity.z = quad_state.x[QS::OMEZ];
+  qo.velocity.x = qs.x[QS::VELX];
+  qo.velocity.y = qs.x[QS::VELY];
+  qo.velocity.z = qs.x[QS::VELZ];
+  qo.angular_velocity.x = qs.x[QS::OMEX];
+  qo.angular_velocity.y = qs.x[QS::OMEY];
+  qo.angular_velocity.z = qs.x[QS::OMEZ];
   
-  Vector<3> euler = quad_state.q().toRotationMatrix().eulerAngles(2, 1, 0);
-  qo.euler_zyx.x = euler.x;
-  qo.euler_zyx.y = euler.y;
-  qo.euler_zyx.z = euler.z;
-  Vector<3> euler = quad_state.q().toRotationMatrix().eulerAngles(2, 1, 0);
-  qo.euler_zyx = geometry_msgs::Vector3(euler.x, euler.y, euler.z);
+  Vector<3> euler = qs.q().toRotationMatrix().eulerAngles(2, 1, 0);
+  qo.euler_zyx.x = euler[2];
+  qo.euler_zyx.y = euler[1];
+  qo.euler_zyx.z = euler[0];
+
   return qo;
 }
 

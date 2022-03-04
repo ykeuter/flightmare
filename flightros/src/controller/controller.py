@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import rospy
-from flightros.msg import Cmd
+from flightros.msg import Cmd, QuadObs
 from sensor_msgs.msg import Image
 
 class Controller:
@@ -10,6 +10,7 @@ class Controller:
     def run(self):
         self._pub = rospy.Publisher('cmd', Cmd, queue_size=1)
         rospy.Subscriber("rgb", Image, self.img_callback)
+        rospy.Subscriber("quad_obs", QuadObs, self.obs_callback)
         rospy.spin()
 
     def img_callback(self, msg):
@@ -28,6 +29,23 @@ class Controller:
                 type(msg.is_bigendian), msg.is_bigendian,
                 type(msg.step), msg.step,
                 type(msg.data), max(msg.data)
+            )
+        )
+        self._pub.publish(Cmd(0, [3, 3, 3, 3]))
+
+    def obs_callback(self, msg):
+        rospy.loginfo(
+            (
+                "\n" +
+                "position: {}, {}, {}\n" +
+                "velocity: {}, {}, {}\n" +
+                "euler_zyx: {}, {}, {}\n" +
+                "angular_velocity: {}, {}, {}\n"
+            ).format(
+                msg.position.x, msg.position.y, msg.position.z,
+                msg.velocity.x, msg.velocity.y, msg.velocity.z,
+                msg.euler_zyx.x, msg.euler_zyx.y, msg.euler_zyx.z,
+                msg.angular_velocity.x, msg.angular_velocity.y, msg.angular_velocity.z,
             )
         )
         self._pub.publish(Cmd(0, [3, 3, 3, 3]))

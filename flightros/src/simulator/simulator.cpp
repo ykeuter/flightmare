@@ -20,10 +20,9 @@ void Simulator::cmdCallback(const Cmd::ConstPtr& msg) {
 
 QuadObs Simulator::genObs(const QuadState& qs) {
   QuadObs qo;
-  // qo.position = geometry_msgs::Vector3(quad_state.x[QS::POSX], quad_state.x[QS::POSY], quad_state.x[QS::POSZ]);
-  qo.position.x = .5;
-  qo.position.y = .5;
-  qo.position.z = .5;
+  qo.position.x = qs.x[QS::POSX];
+  qo.position.y = qs.x[QS::POSY];
+  qo.position.z = qs.x[QS::POSZ];
   qo.velocity.x = qs.x[QS::VELX];
   qo.velocity.y = qs.x[QS::VELY];
   qo.velocity.z = qs.x[QS::VELZ];
@@ -58,8 +57,8 @@ void Simulator::run() {
   std::shared_ptr<RGBCamera> rgb_camera = std::make_shared<RGBCamera>();
 
   // Flightmare(Unity3D)
-  std::shared_ptr<UnityBridge> unity_bridge_ptr = UnityBridge::getInstance();
-  SceneID scene_id{UnityScene::WAREHOUSE};
+  // std::shared_ptr<UnityBridge> unity_bridge_ptr = UnityBridge::getInstance();
+  // SceneID scene_id{UnityScene::WAREHOUSE};
   bool unity_ready{false};
 
   // initialize publishers
@@ -85,31 +84,29 @@ void Simulator::run() {
   quad_ptr_->reset(quad_state);
 
   // connect unity
-  unity_bridge_ptr->addQuadrotor(quad_ptr_);
-  unity_ready = unity_bridge_ptr->connectUnity(scene_id);
+  // unity_bridge_ptr->addQuadrotor(quad_ptr_);
+  // unity_ready = unity_bridge_ptr->connectUnity(scene_id);
 
   FrameID frame_id = 0;
   Scalar dt{.02};
   quad_ptr_->setCommand(cmd_);
 
-  while (ros::ok() && unity_ready) {
-    // quad_state.x[QS::POSZ] += 0.1;
-
-    // quad_ptr->setState(quad_state);
+  // while (ros::ok() && unity_ready) {
+  while (ros::ok()) {
     quad_ptr_->run(dt);
 
-    unity_bridge_ptr->getRender(frame_id);
-    unity_bridge_ptr->handleOutput();
-    
+    // unity_bridge_ptr->getRender(frame_id);
+    // unity_bridge_ptr->handleOutput();
+    quad_ptr_->getState(&quad_state);
     obs_pub.publish(genObs(quad_state));
 
-    ros::Time timestamp = ros::Time::now();
-    cv::Mat img;
-    rgb_camera->getRGBImage(img);
-    sensor_msgs::ImagePtr rgb_msg =
-      cv_bridge::CvImage(std_msgs::Header(), "bgr8", img).toImageMsg();
-    rgb_msg->header.stamp = timestamp;
-    rgb_pub.publish(rgb_msg);
+    // ros::Time timestamp = ros::Time::now();
+    // cv::Mat img;
+    // rgb_camera->getRGBImage(img);
+    // sensor_msgs::ImagePtr rgb_msg =
+    //   cv_bridge::CvImage(std_msgs::Header(), "bgr8", img).toImageMsg();
+    // rgb_msg->header.stamp = timestamp;
+    // rgb_pub.publish(rgb_msg);
 
     ros::spinOnce();
 

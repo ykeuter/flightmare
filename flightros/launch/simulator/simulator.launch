@@ -2,8 +2,8 @@
     <arg name="use_unity_editor" default="false" />
 
     <!-- RPG Flightmare Unity Render. -->
-    <node pkg="flightrender" type="RPG_Flightmare.x86_64" name="rpg_flightmare_render" unless="$(arg use_unity_editor)">
-    </node>
+    <!-- <node pkg="flightrender" type="RPG_Flightmare.x86_64" name="rpg_flightmare_render" args="-batchmode" unless="$(arg use_unity_editor)">
+    </node> -->
 
     <node name="simulator" pkg="flightros" type="simulator" output="screen">
     </node>

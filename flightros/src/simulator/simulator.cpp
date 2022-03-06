@@ -18,6 +18,16 @@ void Simulator::cmdCallback(const Cmd::ConstPtr& msg) {
   quad_ptr_->setCommand(cmd_);
 }
 
+// service callback
+bool add(beginner_tutorials::AddTwoInts::Request  &req,
+   5          beginner_tutorials::AddTwoInts::Response &res)
+   6 {
+   7   res.sum = req.a + req.b;
+   8   ROS_INFO("request: x=%ld, y=%ld", (long int)req.a, (long int)req.b);
+   9   ROS_INFO("sending back response: [%ld]", (long int)res.sum);
+  10   return true;
+  11 }
+
 QuadObs Simulator::genObs(const QuadState& qs) {
   QuadObs qo;
   qo.position.x = qs.x[QS::POSX];
@@ -43,6 +53,9 @@ void Simulator::run() {
   ros::NodeHandle pnh("~");
 
   ros::Rate(50.0);
+
+  // service
+  ros::ServiceServer service = n.advertiseService("reset", add);
 
   // publisher
   image_transport::Publisher rgb_pub;

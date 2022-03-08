@@ -5,7 +5,7 @@ using namespace flightlib;
 namespace flightros {
 
 Simulator::Simulator()
-: cmd_{.0, {-Gz / 4, -Gz / 4, -Gz / 4, -Gz / 4}} {
+: cmd_{.0, {-Gz / 4, -Gz / 4, -Gz / 4, -Gz / 4}}, time_{.0} {
   // quad initialization
   quad_ptr_ = std::make_shared<Quadrotor>();
 }

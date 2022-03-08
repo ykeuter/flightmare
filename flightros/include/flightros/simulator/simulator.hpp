@@ -39,5 +39,6 @@ class Simulator {
   // unity quadrotor
   std::shared_ptr<Quadrotor> quad_ptr_;
   Command cmd_;
+  float time_;
 };
 }  // namespace flightros

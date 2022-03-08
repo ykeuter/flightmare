@@ -1,2 +1,2 @@
-float32 time
+time time
 float32[4] thrusts

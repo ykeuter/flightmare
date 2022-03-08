@@ -13,39 +13,35 @@ Simulator::Simulator()
 Simulator::~Simulator() {}
 
 void Simulator::cmdCallback(const Cmd::ConstPtr& msg) {
-  cmd_.t = msg->time;
+  cmd_.t = msg->time.toSec();
   cmd_.thrusts << msg->thrusts[0], msg->thrusts[1], msg->thrusts[2], msg->thrusts[3];
   quad_ptr_->setCommand(cmd_);
 }
 
 // service callback
-bool add(beginner_tutorials::AddTwoInts::Request  &req,
-   5          beginner_tutorials::AddTwoInts::Response &res)
-   6 {
-   7   res.sum = req.a + req.b;
-   8   ROS_INFO("request: x=%ld, y=%ld", (long int)req.a, (long int)req.b);
-   9   ROS_INFO("sending back response: [%ld]", (long int)res.sum);
-  10   return true;
-  11 }
+bool Simulator::resetCallback(ResetSim::Request  &req,
+             ResetSim::Response &res)
+{
+  return true;
+}
 
-QuadObs Simulator::genObs(const QuadState& qs) {
-  QuadObs qo;
-  qo.position.x = qs.x[QS::POSX];
-  qo.position.y = qs.x[QS::POSY];
-  qo.position.z = qs.x[QS::POSZ];
-  qo.velocity.x = qs.x[QS::VELX];
-  qo.velocity.y = qs.x[QS::VELY];
-  qo.velocity.z = qs.x[QS::VELZ];
-  qo.angular_velocity.x = qs.x[QS::OMEX];
-  qo.angular_velocity.y = qs.x[QS::OMEY];
-  qo.angular_velocity.z = qs.x[QS::OMEZ];
-  
-  Vector<3> euler = qs.q().toRotationMatrix().eulerAngles(2, 1, 0);
-  qo.euler_zyx.x = euler[2];
-  qo.euler_zyx.y = euler[1];
-  qo.euler_zyx.z = euler[0];
+State Simulator::genState(const QuadState& qs) {
+  State st;
+  st.pose.position.x = qs.x[QS::POSX];
+  st.pose.position.y = qs.x[QS::POSY];
+  st.pose.position.z = qs.x[QS::POSZ];
+  st.pose.orientation.w = qs.x[QS::ATTW];
+  st.pose.orientation.x = qs.x[QS::ATTX];
+  st.pose.orientation.y = qs.x[QS::ATTY];
+  st.pose.orientation.z = qs.x[QS::ATTZ];
+  st.twist.linear.x = qs.x[QS::VELX];
+  st.twist.linear.y = qs.x[QS::VELY];
+  st.twist.linear.z = qs.x[QS::VELZ];
+  st.twist.angular.x = qs.x[QS::OMEX];
+  st.twist.angular.y = qs.x[QS::OMEY];
+  st.twist.angular.z = qs.x[QS::OMEZ];
 
-  return qo;
+  return st;
 }
 
 void Simulator::run() {
@@ -55,11 +51,11 @@ void Simulator::run() {
   ros::Rate(50.0);
 
   // service
-  ros::ServiceServer service = n.advertiseService("reset", add);
+  ros::ServiceServer service = nh.advertiseService("reset_sim", &Simulator::resetCallback, this);
 
   // publisher
   image_transport::Publisher rgb_pub;
-  ros::Publisher obs_pub;
+  ros::Publisher state_pub;
 
   // define quadsize scale (for unity visualization only)
   Vector<3> quad_size(0.5, 0.5, 0.5);
@@ -77,7 +73,7 @@ void Simulator::run() {
   // initialize publishers
   image_transport::ImageTransport it(pnh);
   rgb_pub = it.advertise("/rgb", 1);
-  obs_pub = nh.advertise<QuadObs>("quad_obs", 1);
+  state_pub = nh.advertise<State>("state", 1);
 
   // subscriber
   ros::Subscriber sub = nh.subscribe("cmd", 1, &Simulator::cmdCallback, this);
@@ -111,7 +107,7 @@ void Simulator::run() {
     // unity_bridge_ptr->getRender(frame_id);
     // unity_bridge_ptr->handleOutput();
     quad_ptr_->getState(&quad_state);
-    obs_pub.publish(genObs(quad_state));
+    state_pub.publish(genState(quad_state));
 
     // ros::Time timestamp = ros::Time::now();
     // cv::Mat img;

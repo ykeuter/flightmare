@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import rospy
-from flightros.msg import Cmd, QuadObs
+from flightros.msg import Cmd, State
 from sensor_msgs.msg import Image
 import math
 
@@ -11,7 +11,7 @@ class Controller:
     def run(self):
         self._pub = rospy.Publisher('cmd', Cmd, queue_size=1)
         rospy.Subscriber("rgb", Image, self.img_callback)
-        rospy.Subscriber("quad_obs", QuadObs, self.obs_callback)
+        rospy.Subscriber("state", State, self.state_callback)
         rospy.spin()
 
     def img_callback(self, msg):
@@ -34,7 +34,7 @@ class Controller:
         )
         self._pub.publish(Cmd(0, [3, 3, 3, 3]))
 
-    def obs_callback(self, msg):
+    def state_callback(self, msg):
         rospy.loginfo(
             (
                 "\n" +

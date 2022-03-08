@@ -18,7 +18,8 @@
 
 // flightros
 #include "flightros/Cmd.h"
-#include "flightros/QuadObs.h"
+#include "flightros/State.h"
+#include "flightros/ResetSim.h"
 
 using namespace flightlib;
 
@@ -30,9 +31,10 @@ class Simulator {
 
   // callbacks
   void cmdCallback(const Cmd::ConstPtr& msg);
+  bool resetCallback(ResetSim::Request  &req, ResetSim::Response &res);
 
   void run();
-  QuadObs genObs(const QuadState& qs);
+  State genState(const QuadState& qs);
 
 
  private:

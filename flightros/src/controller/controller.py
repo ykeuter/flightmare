@@ -40,16 +40,16 @@ class Controller:
                 "\n" +
                 "position: {}, {}, {}\n" +
                 "velocity: {}, {}, {}\n" +
-                "euler_zyx: {}, {}, {}\n" +
+                "orientation: {}, {}, {}, {}\n" +
                 "angular_velocity: {}, {}, {}\n"
             ).format(
-                msg.position.x, msg.position.y, msg.position.z,
-                msg.velocity.x, msg.velocity.y, msg.velocity.z,
-                msg.euler_zyx.x, msg.euler_zyx.y, msg.euler_zyx.z,
-                msg.angular_velocity.x, msg.angular_velocity.y, msg.angular_velocity.z,
+                msg.pose.position.x, msg.pose.position.y, msg.pose.position.z,
+                msg.twist.linear.x, msg.twist.linear.y, msg.twist.linear.z,
+                msg.pose.orientation.w, msg.pose.orientation.x, msg.pose.orientation.y, msg.pose.orientation.z,
+                msg.twist.angular.x, msg.twist.angular.y, msg.twist.angular.z,
             )
         )
-        self._pub.publish(Cmd(0, [3, 3, 3, 3]))
+        self._pub.publish(Cmd(rospy.Time(0), [3, 3, 3, 3]))
 
     def quaternion_to_euler(self, x, y, z, w):
         t0 = +2.0 * (w * x + y * z)

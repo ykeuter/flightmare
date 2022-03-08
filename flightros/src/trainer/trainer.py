@@ -15,7 +15,7 @@ class Trainer:
         self._last_time = 0
 
     def run(self):
-        rospy.wait_for_service('add_two_ints')
+        rospy.wait_for_service('reset_sim')
         self._reset_sim = rospy.ServiceProxy('reset_sim', ResetSim)
         rospy.Subscriber("state", State, self.state_callback)
         rospy.spin()

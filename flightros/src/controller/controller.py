@@ -38,10 +38,10 @@ class Controller:
         rospy.loginfo(
             (
                 "\n" +
-                "position: {}, {}, {}\n" +
-                "velocity: {}, {}, {}\n" +
-                "orientation: {}, {}, {}, {}\n" +
-                "angular_velocity: {}, {}, {}\n"
+                "position: {:.2f}, {:.2f}, {:.2f}\n" +
+                "velocity: {:.2f}, {:.2f}, {:.2f}\n" +
+                "orientation: {:.2f}, {:.2f}, {:.2f}, {:.2f}\n" +
+                "angular_velocity: {:.2f}, {:.2f}, {:.2f}\n"
             ).format(
                 msg.pose.position.x, msg.pose.position.y, msg.pose.position.z,
                 msg.twist.linear.x, msg.twist.linear.y, msg.twist.linear.z,

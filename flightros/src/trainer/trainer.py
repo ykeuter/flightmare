@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import rospy
 from flightros.msg import State
-from flightros.srv import ResetSim
+from flightros.srv import ResetSim, ResetSimRequest
 from geometry_msgs.msg import Pose, Point, Quaternion, Vector3, Twist
 
 class Trainer:
@@ -28,12 +28,12 @@ class Trainer:
         self._current_reward = 0
         # reset controller
         try:
-            self._reset_sim()
+            self._reset_sim(self._gen_new_state())
         except rospy.ServiceException as e:
             print("Service call failed: %s"%e)
 
     def _gen_new_state(self):
-        return ResetSim.Request(
+        return ResetSimRequest(
             Pose(Point(0, 0, 7), Quaternion(1, 0, 0, 0)),
             Twist(Vector3(0, 0, 0), Vector3(0, 0, 0))
         )
@@ -45,11 +45,15 @@ class Trainer:
         pass
 
     def state_callback(self, msg):
+        t = msg.time.to_sec()
+        if t < self.EPOCH_LENGTH:
+            self._is_resetting = False
         if self._is_resetting:
             return
         # update reward
-        # if T > EPOCh_T
-        # reset
+        rospy.loginfo("\ntime: {:.2f}\n".format(msg.time.to_sec()))
+        if t > self.EPOCH_LENGTH:
+            self._reset()
 
 
 if __name__ == '__main__':

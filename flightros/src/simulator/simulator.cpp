@@ -22,11 +22,13 @@ void Simulator::cmdCallback(const Cmd::ConstPtr& msg) {
 bool Simulator::resetCallback(ResetSim::Request  &req,
              ResetSim::Response &res)
 {
+  time_ = 0;
   return true;
 }
 
 State Simulator::genState(const QuadState& qs) {
   State st;
+  st.time = ros::Time(time_);
   st.pose.position.x = qs.x[QS::POSX];
   st.pose.position.y = qs.x[QS::POSY];
   st.pose.position.z = qs.x[QS::POSZ];
@@ -120,6 +122,7 @@ void Simulator::run() {
     ros::spinOnce();
 
     frame_id += 1;
+    time_ += dt;
     rate.sleep();
   }
 }

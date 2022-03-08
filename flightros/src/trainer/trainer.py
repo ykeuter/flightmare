@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import rospy
 from flightros.msg import State
+from flightros.srv import ResetSim
 from geometry_msgs.msg import Pose, Point, Quaternion, Vector3, Twist
 
 class Trainer:

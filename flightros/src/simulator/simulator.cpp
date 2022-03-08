@@ -48,7 +48,7 @@ void Simulator::run() {
   ros::NodeHandle nh("");
   ros::NodeHandle pnh("~");
 
-  ros::Rate(50.0);
+  ros::Rate rate(2.0);
 
   // service
   ros::ServiceServer service = nh.advertiseService("reset_sim", &Simulator::resetCallback, this);
@@ -97,7 +97,7 @@ void Simulator::run() {
   // unity_ready = unity_bridge_ptr->connectUnity(scene_id);
 
   FrameID frame_id = 0;
-  Scalar dt{.02};
+  Scalar dt{.5};
   quad_ptr_->setCommand(cmd_);
 
   // while (ros::ok() && unity_ready) {
@@ -120,6 +120,7 @@ void Simulator::run() {
     ros::spinOnce();
 
     frame_id += 1;
+    rate.sleep();
   }
 }
 }  // namespace flightros

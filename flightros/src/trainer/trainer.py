@@ -3,6 +3,8 @@ import rospy
 from flightros.msg import State
 from flightros.srv import ResetSim, ResetSimRequest
 from geometry_msgs.msg import Pose, Point, Quaternion, Vector3, Twist
+import os
+import neat
 
 class Trainer:
     EPOCH_LENGTH = 5
@@ -13,9 +15,18 @@ class Trainer:
         self._population = None
         self._current_reward = 0
         self._current_agent = None
-        self._last_time = 0
+        self._prev_t = 0
 
     def run(self):
+        config_path = os.path.join(os.path.dirname(__file__), "neat.cfg")
+        config = neat.Config(
+            neat.DefaultGenome,
+            neat.DefaultReproduction,
+            neat.DefaultSpeciesSet,
+            neat.DefaultStagnation,
+            config_path,
+        )
+        self._population = neat.Population(config)
         rospy.wait_for_service('reset_sim')
         self._reset_sim = rospy.ServiceProxy('reset_sim', ResetSim)
         rospy.Subscriber("state", State, self.state_callback)

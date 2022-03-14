@@ -51,6 +51,9 @@ class Controller:
         )
         self._pub.publish(Cmd(rospy.Time(0), [3, 3, 3, 3]))
 
+    def reset_callback(self, msg):
+        pass
+
     def quaternion_to_euler(self, x, y, z, w):
         t0 = +2.0 * (w * x + y * z)
         t1 = +1.0 - 2.0 * (x * x + y * y)

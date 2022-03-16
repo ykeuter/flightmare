@@ -14,5 +14,21 @@ class Mlp:
         pass
 
     @staticmethod
-    def create():
-        pass
+    def from_cppn(
+        genome,
+        config,
+        input_coords,
+        device="cpu",
+    ):
+        nodes = create_cppn(
+            genome,
+            config,
+            ["x_in", "y_in", "z_in", "x_out", "Y_out", "z_out"],
+            ["weight", "bias"],
+        )
+
+        return Mlp(
+            nodes,
+            input_coords,
+            device=device,
+        )

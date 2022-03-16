@@ -1,9 +1,15 @@
 #!/usr/bin/env python
 import rospy
-from std_msgs.msg import String
+from flightros.msg import Test
+import numpy as np
+from rospy.numpy_msg import numpy_msg
 
 def callback(data):
-    rospy.loginfo(rospy.get_caller_id() + "I heard %s", data.data)
+    # shape = [d.size for d in data.layout.dim]
+    arr = data.weights[0].data
+    shape = [d.size for d in data.weights[0].layout.dim]
+    arr = arr.reshape(shape)
+    rospy.loginfo(rospy.get_caller_id() + "I heard %s", arr)
     
 def listener():
 
@@ -14,7 +20,7 @@ def listener():
     # run simultaneously.
     rospy.init_node('listener', anonymous=True)
 
-    rospy.Subscriber("chatter", String, callback)
+    rospy.Subscriber("chatter", numpy_msg(Test), callback)
 
     # spin() simply keeps python from exiting until this node is stopped
     rospy.spin()

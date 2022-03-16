@@ -14,5 +14,5 @@ class Mlp:
         pass
 
     @staticmethod
-    def from_cppn():
+    def create():
         pass

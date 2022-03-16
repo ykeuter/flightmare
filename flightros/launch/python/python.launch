@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <launch>
 
-    <node name="talker" pkg="flightros" type="talker.py">
+    <node name="talker" pkg="flightros" type="talker.py" output="screen">
     </node>
 
-    <node name="listener" pkg="flightros" type="listener.py">
+    <node name="listener" pkg="flightros" type="listener.py" output="screen">
     </node>
 </launch>

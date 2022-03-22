@@ -1,3 +1,2 @@
-std_msgs/Float32MultiArray[] weights
-std_msgs/Float32MultiArray[] biases
+flightros/Mlp mlp
 ---

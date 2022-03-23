@@ -1,6 +1,9 @@
 
 #pragma once
 
+// yaml cpp
+#include <yaml-cpp/yaml.h>
+
 // ros
 #include <cv_bridge/cv_bridge.h>
 #include <image_transport/image_transport.h>
@@ -41,6 +44,8 @@ class Simulator {
   // unity quadrotor
   std::shared_ptr<Quadrotor> quad_ptr_;
   Command cmd_;
-  float time_;
+  QuadState quad_state_;
+  float thrust_mean_;
+  float thrust_std_;
 };
 }  // namespace flightros

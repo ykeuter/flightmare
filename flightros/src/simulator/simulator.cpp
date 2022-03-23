@@ -5,9 +5,17 @@ using namespace flightlib;
 namespace flightros {
 
 Simulator::Simulator()
-: cmd_{.0, {-Gz / 4, -Gz / 4, -Gz / 4, -Gz / 4}}, time_{.0} {
+: cmd_{.0, {.0, .0, .0, .0}} {
   // quad initialization
   quad_ptr_ = std::make_shared<Quadrotor>();
+  YAML::Node cfg_ = YAML::LoadFile(getenv("FLIGHTMARE_PATH") +
+    std::string("/flightlib/configs/quadrotor_env.yaml"));
+  QuadrotorDynamics dynamics;
+  dynamics.updateParams(cfg_);
+  quadrotor_ptr_->updateDynamics(dynamics);
+  Scalar mass = quadrotor_ptr_->getMass();
+  thrust_mean_ = (-mass * Gz) / 4;
+  thrust_std_ = (-mass * 2 * Gz) / 4;
 }
 
 Simulator::~Simulator() {}
@@ -15,6 +23,8 @@ Simulator::~Simulator() {}
 void Simulator::cmdCallback(const Cmd::ConstPtr& msg) {
   cmd_.t = msg->time.toSec();
   cmd_.thrusts << msg->thrusts[0], msg->thrusts[1], msg->thrusts[2], msg->thrusts[3];
+  cmd_.thrusts *= thrust_std_;
+  cmd_.thrusts += thrust_mean_;
   quad_ptr_->setCommand(cmd_);
 }
 
@@ -22,26 +32,43 @@ void Simulator::cmdCallback(const Cmd::ConstPtr& msg) {
 bool Simulator::resetCallback(ResetSim::Request  &req,
              ResetSim::Response &res)
 {
-  time_ = 0;
+  quad_state_.setZero();
+  quad_state_.x[QS::POSX] = st.pose.position.x;
+  quad_state_.x[QS::POSY] = st.pose.position.y;
+  quad_state_.x[QS::POSZ] = st.pose.position.z;
+  quad_state_.x[QS::ATTW] = st.pose.orientation.w;
+  quad_state_.x[QS::ATTX] = st.pose.orientation.x;
+  quad_state_.x[QS::ATTY] = st.pose.orientation.y;
+  quad_state_.x[QS::ATTZ] = st.pose.orientation.z;
+  quad_state_.x[QS::VELX] = st.twist.linear.x;
+  quad_state_.x[QS::VELY] = st.twist.linear.y;
+  quad_state_.x[QS::VELZ] = st.twist.linear.z;
+  quad_state_.x[QS::OMEX] = st.twist.angular.x;
+  quad_state_.x[QS::OMEY] = st.twist.angular.y;
+  quad_state_.x[QS::OMEZ] = st.twist.angular.z;
+  quadrotor_ptr_->reset(quad_state_);
+  cmd_.t = 0.0;
+  cmd_.thrusts.setZero();
+  quad_ptr_->setCommand(cmd_);
   return true;
 }
 
-State Simulator::genState(const QuadState& qs) {
+State Simulator::genState() {
   State st;
-  st.time = ros::Time(time_);
-  st.pose.position.x = qs.x[QS::POSX];
-  st.pose.position.y = qs.x[QS::POSY];
-  st.pose.position.z = qs.x[QS::POSZ];
-  st.pose.orientation.w = qs.x[QS::ATTW];
-  st.pose.orientation.x = qs.x[QS::ATTX];
-  st.pose.orientation.y = qs.x[QS::ATTY];
-  st.pose.orientation.z = qs.x[QS::ATTZ];
-  st.twist.linear.x = qs.x[QS::VELX];
-  st.twist.linear.y = qs.x[QS::VELY];
-  st.twist.linear.z = qs.x[QS::VELZ];
-  st.twist.angular.x = qs.x[QS::OMEX];
-  st.twist.angular.y = qs.x[QS::OMEY];
-  st.twist.angular.z = qs.x[QS::OMEZ];
+  st.time = ros::Time(quad_state_.t);
+  st.pose.position.x = quad_state_.x[QS::POSX];
+  st.pose.position.y = quad_state_.x[QS::POSY];
+  st.pose.position.z = quad_state_.x[QS::POSZ];
+  st.pose.orientation.w = quad_state_.x[QS::ATTW];
+  st.pose.orientation.x = quad_state_.x[QS::ATTX];
+  st.pose.orientation.y = quad_state_.x[QS::ATTY];
+  st.pose.orientation.z = quad_state_.x[QS::ATTZ];
+  st.twist.linear.x = quad_state_.x[QS::VELX];
+  st.twist.linear.y = quad_state_.x[QS::VELY];
+  st.twist.linear.z = quad_state_.x[QS::VELZ];
+  st.twist.angular.x = quad_state_.x[QS::OMEX];
+  st.twist.angular.y = quad_state_.x[QS::OMEY];
+  st.twist.angular.z = quad_state_.x[QS::OMEZ];
 
   return st;
 }
@@ -62,7 +89,6 @@ void Simulator::run() {
   // define quadsize scale (for unity visualization only)
   Vector<3> quad_size(0.5, 0.5, 0.5);
   quad_ptr_->setSize(quad_size);
-  QuadState quad_state;
 
   //
   std::shared_ptr<RGBCamera> rgb_camera = std::make_shared<RGBCamera>();
@@ -91,8 +117,8 @@ void Simulator::run() {
   quad_ptr_->addRGBCamera(rgb_camera);
 
   // initialization
-  quad_state.setZero();
-  quad_ptr_->reset(quad_state);
+  quad_state_.setZero();
+  quad_ptr_->reset(quad_state_);
 
   // connect unity
   // unity_bridge_ptr->addQuadrotor(quad_ptr_);
@@ -108,8 +134,8 @@ void Simulator::run() {
 
     // unity_bridge_ptr->getRender(frame_id);
     // unity_bridge_ptr->handleOutput();
-    quad_ptr_->getState(&quad_state);
-    state_pub.publish(genState(quad_state));
+    quad_ptr_->getState(&quad_state_);
+    state_pub.publish(genState());
 
     // ros::Time timestamp = ros::Time::now();
     // cv::Mat img;
@@ -122,7 +148,6 @@ void Simulator::run() {
     ros::spinOnce();
 
     frame_id += 1;
-    time_ += dt;
     rate.sleep();
   }
 }

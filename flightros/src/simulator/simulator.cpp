@@ -12,10 +12,11 @@ Simulator::Simulator()
     std::string("/flightlib/configs/quadrotor_env.yaml"));
   QuadrotorDynamics dynamics;
   dynamics.updateParams(cfg_);
-  quadrotor_ptr_->updateDynamics(dynamics);
-  Scalar mass = quadrotor_ptr_->getMass();
-  thrust_mean_ = (-mass * Gz) / 4;
-  thrust_std_ = (-mass * 2 * Gz) / 4;
+  quad_ptr_->updateDynamics(dynamics);
+  Scalar mass = quad_ptr_->getMass();
+
+  thrust_mean_ = Vector<4>::Ones() * (-mass * Gz) / 4;
+  thrust_std_ = Vector<4>::Ones() * (-mass * 2 * Gz) / 4;
 }
 
 Simulator::~Simulator() {}
@@ -23,8 +24,7 @@ Simulator::~Simulator() {}
 void Simulator::cmdCallback(const Cmd::ConstPtr& msg) {
   cmd_.t = msg->time.toSec();
   cmd_.thrusts << msg->thrusts[0], msg->thrusts[1], msg->thrusts[2], msg->thrusts[3];
-  cmd_.thrusts *= thrust_std_;
-  cmd_.thrusts += thrust_mean_;
+  cmd_.thrusts = cmd_.thrusts.cwiseProduct(thrust_std_) + thrust_mean_;
   quad_ptr_->setCommand(cmd_);
 }
 
@@ -33,20 +33,20 @@ bool Simulator::resetCallback(ResetSim::Request  &req,
              ResetSim::Response &res)
 {
   quad_state_.setZero();
-  quad_state_.x[QS::POSX] = st.pose.position.x;
-  quad_state_.x[QS::POSY] = st.pose.position.y;
-  quad_state_.x[QS::POSZ] = st.pose.position.z;
-  quad_state_.x[QS::ATTW] = st.pose.orientation.w;
-  quad_state_.x[QS::ATTX] = st.pose.orientation.x;
-  quad_state_.x[QS::ATTY] = st.pose.orientation.y;
-  quad_state_.x[QS::ATTZ] = st.pose.orientation.z;
-  quad_state_.x[QS::VELX] = st.twist.linear.x;
-  quad_state_.x[QS::VELY] = st.twist.linear.y;
-  quad_state_.x[QS::VELZ] = st.twist.linear.z;
-  quad_state_.x[QS::OMEX] = st.twist.angular.x;
-  quad_state_.x[QS::OMEY] = st.twist.angular.y;
-  quad_state_.x[QS::OMEZ] = st.twist.angular.z;
-  quadrotor_ptr_->reset(quad_state_);
+  quad_state_.x[QS::POSX] = req.pose.position.x;
+  quad_state_.x[QS::POSY] = req.pose.position.y;
+  quad_state_.x[QS::POSZ] = req.pose.position.z;
+  quad_state_.x[QS::ATTW] = req.pose.orientation.w;
+  quad_state_.x[QS::ATTX] = req.pose.orientation.x;
+  quad_state_.x[QS::ATTY] = req.pose.orientation.y;
+  quad_state_.x[QS::ATTZ] = req.pose.orientation.z;
+  quad_state_.x[QS::VELX] = req.twist.linear.x;
+  quad_state_.x[QS::VELY] = req.twist.linear.y;
+  quad_state_.x[QS::VELZ] = req.twist.linear.z;
+  quad_state_.x[QS::OMEX] = req.twist.angular.x;
+  quad_state_.x[QS::OMEY] = req.twist.angular.y;
+  quad_state_.x[QS::OMEZ] = req.twist.angular.z;
+  quad_ptr_->reset(quad_state_);
   cmd_.t = 0.0;
   cmd_.thrusts.setZero();
   quad_ptr_->setCommand(cmd_);

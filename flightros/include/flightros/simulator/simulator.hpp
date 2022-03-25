@@ -37,7 +37,7 @@ class Simulator {
   bool resetCallback(ResetSim::Request  &req, ResetSim::Response &res);
 
   void run();
-  State genState(const QuadState& qs);
+  State genState();
 
 
  private:
@@ -45,7 +45,7 @@ class Simulator {
   std::shared_ptr<Quadrotor> quad_ptr_;
   Command cmd_;
   QuadState quad_state_;
-  float thrust_mean_;
-  float thrust_std_;
+  Vector<4> thrust_mean_;
+  Vector<4> thrust_std_;
 };
 }  // namespace flightros

@@ -35,7 +35,8 @@ enum Vision : int {
 
   // observations
   kObs = 0,
-  kNObs = 15 + kNObstacles * kNObstaclesState,
+  // kNObs = 15 + kNObstacles * kNObstaclesState,
+  kNObs = 18,
 
   // control actions
   kAct = 0,
@@ -153,6 +154,7 @@ class VisionEnv final : public EnvBase {
   cv::Mat depth_img_;
 
   // auxiliary variables
+  int rotor_ctrl_{0};
   bool use_camera_{false};
   YAML::Node cfg_;
   std::vector<std::string> reward_names_;

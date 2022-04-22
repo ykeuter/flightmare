@@ -154,12 +154,12 @@ bool VisionEnv::getObs(Ref<Vector<>> obs) {
 
 bool VisionEnv::getObstacleState(Ref<Vector<>> obs_state) {
   if (dynamic_objects_.size() <= 0 || static_objects_.size() <= 0) {
-    // logger_.error("No dynamic or static obstacles.");
+    logger_.error("No dynamic or static obstacles.");
     return false;
   }
   // make sure to reset the collision penalty
-  // relative_pos_norm_.clear();
-  // obstacle_radius_.clear();
+  relative_pos_norm_.clear();
+  obstacle_radius_.clear();
 
   //
   quad_ptr_->getState(&quad_state_);
@@ -169,19 +169,19 @@ bool VisionEnv::getObstacleState(Ref<Vector<>> obs_state) {
   for (int i = 0; i < (int)dynamic_objects_.size(); i++) {
     // compute relative position vector
     Vector<3> delta_pos = dynamic_objects_[i]->getPos() - quad_state_.p;
-    // relative_pos.push_back(delta_pos);
+    relative_pos.push_back(delta_pos);
 
     // compute relative distance
     Scalar obstacle_dist = delta_pos.norm();
     // limit observation range
-    // if (obstacle_dist > max_detection_range_) {
-    //   obstacle_dist = max_detection_range_;
-    // }
-    // relative_pos_norm_.push_back(obstacle_dist);
+    if (obstacle_dist > max_detection_range_) {
+      obstacle_dist = max_detection_range_;
+    }
+    relative_pos_norm_.push_back(obstacle_dist);
 
     // store the obstacle radius
     Scalar obs_radius = dynamic_objects_[i]->getScale()[0] / 2;
-    // obstacle_radius_.push_back(obs_radius);
+    obstacle_radius_.push_back(obs_radius);
 
     //
     if (obstacle_dist < obs_radius) {
@@ -193,27 +193,24 @@ bool VisionEnv::getObstacleState(Ref<Vector<>> obs_state) {
   for (int i = 0; i < (int)static_objects_.size(); i++) {
     // compute relative position vector
     Vector<3> delta_pos = static_objects_[i]->getPos() - quad_state_.p;
-    // relative_pos.push_back(delta_pos);
+    relative_pos.push_back(delta_pos);
 
 
     // compute relative distance
     Scalar obstacle_dist = delta_pos.norm();
-    // if (obstacle_dist > max_detection_range_) {
-    //   obstacle_dist = max_detection_range_;
-    // }
-    // relative_pos_norm_.push_back(obstacle_dist);
+    if (obstacle_dist > max_detection_range_) {
+      obstacle_dist = max_detection_range_;
+    }
+    relative_pos_norm_.push_back(obstacle_dist);
 
     // store the obstacle radius
     Scalar obs_radius = static_objects_[i]->getScale()[0] / 2;
-    // obstacle_radius_.push_back(obs_radius);
+    obstacle_radius_.push_back(obs_radius);
 
     if (obstacle_dist < obs_radius) {
       is_collision_ = true;
     }
   }
-
-  // we don't need obs state
-  return true;
 
   // std::cout << relative_pos_norm_ << std::endl;
   size_t idx = 0;
@@ -295,8 +292,8 @@ bool VisionEnv::step(const Ref<Vector<>> act, Ref<Vector<>> obs,
 
 bool VisionEnv::simDynamicObstacles(const Scalar dt) {
   if (dynamic_objects_.size() <= 0) {
-    // logger_.warn(
-    //   "No Dynamic Obstacles defined. Skipping dynamic obstacles simulation.");
+    logger_.warn(
+      "No Dynamic Obstacles defined. Skipping dynamic obstacles simulation.");
     return false;
   }
   for (int i = 0; i < int(dynamic_objects_.size()); i++) {
@@ -348,10 +345,10 @@ bool VisionEnv::computeReward(Ref<Vector<>> reward) {
 }
 
 bool VisionEnv::isTerminalState(Scalar &reward) {
-  if (is_collision_) {
-    reward = -1.0;
-    return true;
-  }
+  // if (is_collision_) {
+  //   reward = -1.0;
+  //   return true;
+  // }
 
   // simulation time out
   if (cmd_.t >= max_t_ - sim_dt_) {
@@ -372,12 +369,10 @@ bool VisionEnv::isTerminalState(Scalar &reward) {
     reward = -1.0;
     return true;
   }
-
-  Matrix<3, 3> rot = quad_state_.R();
-  if (rot(0, 0) < 0 || rot(1, 1) < 0 || rot(2, 2) < 0) {
-    return true;
-  }
-
+  // Matrix<3, 3> rot = quad_state_.R();
+  // if (rot(0, 0) < 0 || rot(1, 1) < 0 || rot(2, 2) < 0) {
+  //   return true;
+  // }
   return false;
 }
 

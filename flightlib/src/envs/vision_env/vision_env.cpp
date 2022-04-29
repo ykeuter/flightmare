@@ -557,6 +557,9 @@ bool VisionEnv::configStaticObjects(const std::string &csv_file) {
   std::ifstream infile(csv_file);
   int i = 0;
   for (auto &row : CSVRange(infile)) {
+    if (i++ == 0) {
+      continue;
+    }
     // Read column 0 for time
     std::string object_id = "StaticObject" + std::to_string(i + 1);
     std::string prefab_id = (std::string)row[0];
